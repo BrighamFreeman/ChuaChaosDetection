@@ -4,13 +4,19 @@ global b
 global c
 global seeding 
 global stepsize
+
+% pass in the parameters for the run on input line
 a = in(1)
 b = in(2)
 c = in(3)
+
+%define variables based on input
 syms b1 c1 a1
 a1 = a
 b1 = b
 c1 = c
+
+% set random stepsize if not specified
 stepsize = in(4)
 if stepsize == 0
     stepsize = rand
@@ -85,12 +91,16 @@ while(iters < 2500)
     if imag(v1) ~= 0
         comp_vectors = true;
     end
-     
+
+    % check the conditions for Shilnikov bifurcations
+    
     if abs(real(v3)) > 0 & imag(v3) == 0 & comp_vectors
         if abs(real(v1)) > 0 & abs(real(v2)) > 0 & real(v1)~= 0 & opposite_signs
               if abs(real(v2)) < abs(v3)
                 [V,U] = eig(mat);
 
+                % as a condition of Shilnikov bifurcations, the eigenvectors must be linearly independent
+                % we check this with the equationstest function
                 testLinearity = equationstest(V);
                 if testLinearity == 0
                     disp("Shilnikov Bifurcation")
@@ -98,8 +108,8 @@ while(iters < 2500)
                     disp(e)
                     disp(V)
                     out2 = ([a, b, c]);
-                    %file output
-                    
+                    % define the parameters for file output
+
                     %columns are a b c v1 v2 v3 x0
                     P = [a b c v1 v2 v3 x];
                     G = ["a", "b", "c", "v1", "v2", "v3"];
@@ -122,7 +132,9 @@ while(iters < 2500)
     %a = a + 0.05;
     %b = b + 0.05;
     %c = c + 0.05;
-    
+
+    % check to see if random seeding has been set
+    % if not, add random walks to the search
     if seeding == 0 
         a = a + stepsize;
         b = b + stepsize;
@@ -135,6 +147,8 @@ while(iters < 2500)
     end
     end
 end 
+
+% define the function to test linear independence 
 
 function out3 = equationstest(V)
 u1 = V(1,1);
@@ -149,7 +163,7 @@ w1 = V(1,3);
 w2 = V(2, 3);
 w3 = V(3,3);
 
-
+% numerically solve the system of equations 
 syms f g h 
 sol = solve([f*u1 - g*v1 + h * w1 == 0, f*u2 + g*v2 - w2*h == 0, u3 + v3 + u3 == 0], [f,g,h]);
 solA = sol.f;
@@ -163,6 +177,8 @@ else
 end
 end
 
+% function to search for hopf bifurcations
+% since the conditions for hopf bifurcations are similar to Shilnikov, we search the neighborhood of Shilnikov bifurcations
 function hop = hopf(x)
     global a
     global b
@@ -173,10 +189,14 @@ function hop = hopf(x)
     c1 = c;
     mat = [0 a1 0; 1 -1 1; 0 -b1 c1]
 
+    % compute new eigenvalues
     e = eig(mat);
     v1 = e(1,1);
     v2 = e(2,1);
-    v3 = e(3,1);
+    v3 = e(3,1);\
+
+    % define past eigenvalues, since we may cross the real axis during search
+    % Hopf bifurcations occur when the real component of complex conjugates is 0, so we want to detect when crossover occurs
     pastv = 0 + 0i;
     pastv2 = 0 + 0i;
     pastv3 = 0;
@@ -200,7 +220,8 @@ function hop = hopf(x)
                 break
             end
         end
-        
+
+        % check to see if a cross over the real axis has happened
         if real(v1) > 0
             if real(pastv < 0)
                 disp("Hopf Bifurcation Near")
@@ -208,6 +229,8 @@ function hop = hopf(x)
                 disp("Sign changed from - to +")
                 disp ([v1 v2 v3])
                 disp([pastv pastv2])
+
+                % log approximate coordinates to a .csv
                 P = [a b c v1 v2 v3 pastv pastv2 pastv3 x real(0)];
                 T = table(P);
                 writetable(T, 'hopf.csv','WriteMode','append');
