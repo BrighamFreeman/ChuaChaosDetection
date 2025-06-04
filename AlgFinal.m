@@ -18,16 +18,21 @@ end
 seeding = in(5)
 i = 0;
 while i < 500
+    % Use VPASolve to solve the matrix of differential equations
+    % including (y,1) and (y,-1) will assert search conditions for solutions
     syms y
     sol1 = vpasolve(-b1 * (y - sin(y)) - c1 * sin(y) == 0, y)
     sol2 = vpasolve(-b1 * (y - sin(y)) - c1 * sin(y) == 0, y, 1)
     sol3 = vpasolve(-b1 * (y - sin(y)) - c1 * sin(y) == 0, y, -1)
+    %collect an array of the solutions
     S = [sol1 sol2 sol3]
 
+    % run a bifurcation analysis for each solution
     BifCheck(S(1,1))
     BifCheck(S(1,2))
     BifCheck(S(1,3))
 
+    % add random walk search to check nearby regions 
     i = i + 1
     a1 = a1 + rand
     b1 = b1 + rand
@@ -51,8 +56,11 @@ while(iters < 2500)
     
     out2 = "";
     iters = iters + 1;
+
+    $ define our Jacobian matrix to search
     mat = [((-1 * a) *(cos(x) - 1)) a 0; 1 -1 1; 0 (-1 * b) c];
-    
+
+    % solve eigenvalues of the matrix
     e = eig(mat);
     v1 = e(1,1);
     v2 = e(2,1);
