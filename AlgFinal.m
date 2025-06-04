@@ -62,9 +62,19 @@ while(iters < 2500)
 
     % solve eigenvalues of the matrix
     e = eig(mat);
+
+    % since MATLAB doesn't sort eigenvalues by default, set the real eigenvalue first and complex conjugates second
+    real_vals = e(imag(e) == 0);
+    complex_vals = e(imag(e) ~= 0);
+    e = [sort(real_vals); sort(complex_vals)];
     v1 = e(1,1);
     v2 = e(2,1);
     v3 = e(3,1);
+
+    % as a condition for Shilnikov bifurcations to occur, the imaginary and real components of the eigenvalues must have opposite signs
+    % since we already sorted the real value first and complex conjugates second, we only need to compare
+    % the first (real) eigenvalue with the real component of the complex conjugates, since the real value will be the same for both
+    $ complex eigenvalues
     
     opposite_signs = false;
     if (real(v3) < 0 & real(v1) > 0) | (real(v3) > 0 & real(v1) < 0)
